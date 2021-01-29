@@ -4,6 +4,17 @@
   Paul Vuarambon
   Aircarto
   Janvier 2021
+
+  Configuration Arduino IDE:
+    1.  Ouvrir l’EDI Arduino. Aller dans "Fichier => Préférences" :
+    2.  Dans "URL de gestionnaire de cartes supplémentaires", entrer :
+        http://arduino.esp8266.com/stable/package_esp8266com_index.json
+    3.  Cliquer sur "OK".
+    4. Aller ensuite dans "Outils => Type de carte => Gestionnaire de carte" et installer "esp8266" 
+    5. Retourner dans Outils et choisir la carte : "LOLIN(WEMOS) D1 R2 & mini" et le port COM correspondant à votre port USB
+    6. Téléverser le code en ajoutant votre nom de réseau WIFI ainsi que le mot de passe de votre WIFI
+
+
 */
 
 #include <ESP8266WiFi.h>
@@ -11,9 +22,10 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-/* Set these to your desired credentials. */
-const char* ssid = "ModuleAir";
-const char* password = "ModuleAir";
+/* MODIFIER ICI EN REMPLACANT "ModuleAir" par votre nom de réseau WIFI et votre code WIFI */
+const char* nomWIFI = "ModuleAir";
+const char* codeWIFI = "ModuleAir";
+
 
 String data;
  
@@ -27,7 +39,7 @@ void setup() {
 
   
   
-  WiFi.begin(ssid, password);     //Connect to your WiFi router
+  WiFi.begin(nomWIFI, codeWIFI);     //Connect to your WiFi router
   Serial.println("");
 
   Serial.print("Connecting");
@@ -40,7 +52,7 @@ void setup() {
   //If connection successful show IP address in serial monitor
   Serial.println("");
   Serial.print("Connected to ");
-  Serial.println(ssid);
+  Serial.println(nomWIFI);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());  //IP address assigned to your ESP
 }
