@@ -12,5 +12,8 @@ void LogoModuleAir();
 void AirInterieur();
 void RegionSud();
 void AirExt();
+void petiteMaison();
+void ugm3();
+void blackScreen();
 
 #endif

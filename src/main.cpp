@@ -1,4 +1,3 @@
-
 /*
  *
  * Code Module Air
@@ -7,7 +6,7 @@
  * Serial 3: SDS011
  * Serial 2: WIFI (esp8266 D1 mini)
  *
- * Sonde CO2 (MHZ16)
+ * Sonde CO2 (MHZ16 ou MH-Z19b)
  * EN MODE UART sur Serial1
  *
  *
@@ -16,11 +15,16 @@
  * !! Attention: suivant le type d'écran Matrix inverser OE et LAT
  *
  * Librairies à intaller:
+ *
     Adafruit GFX library (dispo dans le gestionnaire de librairies)
     RGB Matrix Panel (dispo dans le gestionnaire de librairies)
     SDS011 sensor library (dispo dans le gestionnaire de librairies)
+
+    Pour la sonde C02 deux versions possible: MH-Z16 ou MH-19B:
     NDIRZ16 (dispo ici: https://github.com/airpaca/Module_Air/blob/master/20181218_AtmoSud_Module_Air/libraries/NDIRZ16-master.zip)
-    UART Bridge master - SC16IS750 (dispo ici: https://github.com/airpaca/Module_Air/blob/master/20181218_AtmoSud_Module_Air/libraries/UART_Bridge-master.zip)
+    ou
+    MHZ9 (dispo ici: https://github.com/WifWaf/MH-Z19)
+
  *
  *
  *
@@ -29,15 +33,15 @@
  */
 
 #include <Arduino.h>
-#include <Adafruit_GFX.h> // Ecran
+#include <Adafruit_GFX.h>
 #include <RGBmatrixPanel.h>
 #include "logos.h"
 
-#include <Wire.h> // I2C
+#include <Wire.h>
 #include <SPI.h>
 
 #include <NDIRZ16.h> // CO2
-//#include <SC16IS750.h>
+#include <MHZ19.h>
 
 #include <SDS011.h> // PM
 
@@ -104,10 +108,10 @@ int RGB_6[] = {128, 0, 0};   // classe 6 (2VL)
 int VLISA = 75; // Horaire
 char VISA[5];
 
-// CO2
-// SC16IS750 i2cuart = SC16IS750(SC16IS750_PROTOCOL_I2C, SC16IS750_ADDRESS_BB);
-// NDIRZ16 mySensor = NDIRZ16(&i2cuart);
+// CO2 sur le port de série 1
+// choisir sa sonde
 NDIRZ16 mySensor = NDIRZ16(&Serial1);
+// MHZ19 mySensor;
 
 int Boucle = 0;
 
@@ -122,20 +126,15 @@ void setup()
 {
   matrix.begin();        // SCREEN
   Serial.begin(115200);  // Moniteur de Serie
-  Serial2.begin(115200); // WEMOS D1 mini (ESP8266) WIFI
   Serial1.begin(9600);   // SONDE C02
+  Serial2.begin(115200); // WEMOS D1 mini (ESP8266) WIFI
+  Serial3.begin(9600);   // sonde PM
   my_sds.begin(RX, TX);
-  Serial3.begin(9600); // sonde PM
 
   Serial.println("**************");
   Serial.println("MODULE AIR");
   Serial.println("**************");
-
-  randomSeed(analogRead(0)); // permet un "meilleur" alea
-
-  // DemMHZ16();
 }
-
 
 //************************************************************************************
 
@@ -178,7 +177,6 @@ void showNewData()
     newData = false;
   }
 }
-
 
 //**************************************Calcul Ecran*********************************************
 
@@ -258,8 +256,6 @@ int code_RGB2(int VL_pol, int pixel_VL, int Val_pol) // VL_pol = VL du polluant 
     return Blue;
   }
 } // Fin de la fonction code_RGB2
-
-
 
 // Calcule Carre de couleur en fonction de la valeur, et de la valeur limite du polluant.
 int code_RGB(int VL_pol, int pixel_VL, int Val_pol) // VL_pol = VL du polluant à Afficher, pixel_VL = numero du pixel qui marquera la VL sur la Matrice LED, Val_pol = Valeur renvoyée par la sonde ou l'API
@@ -345,8 +341,6 @@ int code_RGB(int VL_pol, int pixel_VL, int Val_pol) // VL_pol = VL du polluant �
   }
 } // Fin de la fonction code_RGB
 
-
-
 void degrade()
 {
   for (int i = 0; i < 65; i++) // degrade de couleur
@@ -357,7 +351,6 @@ void degrade()
   code_RGB2(VLISA, pixel_VL, pixel_VL);
   matrix.drawLine(pixel_VL, 26, pixel_VL, 27, matrix.Color888(Red, Green, Blue));
 }
-
 
 void ISA()
 {
@@ -395,11 +388,10 @@ void ISA()
   matrix.drawLine(posc2 - 2, 25, posc2 + 2, 25, matrix.Color444(255, 255, 255));
   delay(8000);
 
-  matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+  blackScreen();
 }
 
 //************************************************************************************
-
 
 void PolExt()
 {
@@ -410,7 +402,7 @@ void PolExt()
     Serial.println("Affichage de l'air extérieur");
     AirExt();
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
 
     ISA();
   }
@@ -418,8 +410,6 @@ void PolExt()
   {
   }
 }
-
-
 
 /********************************************SondeCO2********************************************/
 
@@ -429,7 +419,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
   { // mesure CO2
     matrix.fillRect(0, 8, 64, 24, matrix.Color444(0, 0, 0));
     // CO2
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
     matrix.setCursor(2, 0); // next line
     matrix.setTextSize(1);  // size 1 == 8 pixels high
     matrix.setTextColor(matrix.Color888(0, 82, 228));
@@ -443,20 +433,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
     matrix.drawLine(20, 7, 22, 7, matrix.Color888(0, 82, 228));
 
     // Petite maison
-    matrix.drawLine(55, 4, 56, 4, matrix.Color333(7, 7, 7));
-    matrix.drawLine(62, 4, 63, 4, matrix.Color333(7, 7, 7));
-    matrix.drawLine(59, 0, 59, 0, matrix.Color333(7, 7, 7));
-    matrix.drawLine(58, 1, 58, 1, matrix.Color333(7, 7, 7));
-    matrix.drawLine(60, 1, 60, 1, matrix.Color333(7, 7, 7));
-    matrix.drawLine(57, 2, 57, 2, matrix.Color333(7, 7, 7));
-    matrix.drawLine(61, 2, 61, 2, matrix.Color333(7, 7, 7));
-    matrix.drawLine(56, 3, 56, 3, matrix.Color333(7, 7, 7));
-    matrix.drawLine(62, 3, 62, 3, matrix.Color333(7, 7, 7));
-    matrix.drawLine(56, 5, 56, 5, matrix.Color333(7, 7, 7));
-    matrix.drawLine(62, 5, 62, 5, matrix.Color333(7, 7, 7));
-    matrix.drawLine(56, 6, 56, 6, matrix.Color333(7, 7, 7));
-    matrix.drawLine(62, 6, 62, 6, matrix.Color333(7, 7, 7));
-    matrix.drawLine(56, 7, 62, 7, matrix.Color333(7, 7, 7));
+    petiteMaison();
 
     matrix.setCursor(5, 9); // next line
     matrix.setTextSize(2);  // size 2 == 16 pixels high
@@ -504,7 +481,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
     } // fin CO2 niv mauvais
     snprintf(CO2, sizeof CO2, "%lu", (unsigned long)mySensor.ppm);
     delay(8000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   } // fin mesure CO2
 }
 
@@ -554,71 +531,13 @@ void SDS011PM()
           P25 = (float(Pm25) / 10);
           P10 = (float(Pm10) / 10);
 
-          matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+          blackScreen();
           matrix.setCursor(0, 0); // next line
           matrix.setTextSize(1);  // size 1 == 8 pixels high
           matrix.setTextColor(matrix.Color888(0, 82, 228));
           matrix.println("PM10");
-
-          matrix.drawLine(51, 0, 52, 0, matrix.Color888(0, 82, 228));
-          matrix.drawLine(59, 0, 59, 0, matrix.Color333(7, 7, 7));
-          matrix.drawLine(43, 1, 43, 1, matrix.Color888(0, 82, 228));
-          matrix.drawLine(53, 1, 53, 1, matrix.Color888(0, 82, 228));
-          matrix.drawLine(58, 1, 58, 1, matrix.Color333(7, 7, 7));
-          matrix.drawLine(60, 1, 60, 1, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 2, 28, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 2, 32, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 2, 37, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(42, 2, 42, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(52, 2, 53, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(57, 2, 57, 2, matrix.Color333(7, 7, 7));
-          matrix.drawLine(61, 2, 61, 2, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 3, 28, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 3, 32, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(34, 3, 34, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(37, 3, 38, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(42, 3, 42, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 3, 46, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(48, 3, 48, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(53, 3, 53, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 3, 56, 3, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 3, 62, 3, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 4, 28, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 4, 32, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(34, 4, 34, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(37, 4, 38, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(41, 4, 41, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 4, 45, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 4, 47, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 4, 49, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(51, 4, 52, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(55, 4, 56, 4, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 4, 63, 4, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 5, 28, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(31, 5, 32, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 5, 36, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(38, 5, 38, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(41, 5, 41, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 5, 45, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 5, 47, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 5, 49, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 5, 56, 5, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 5, 62, 5, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 6, 30, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 6, 32, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(38, 6, 38, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(40, 6, 40, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 6, 45, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 6, 47, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 6, 49, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 6, 56, 6, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 6, 62, 6, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 7, 28, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 7, 37, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 7, 45, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 7, 47, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 7, 49, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 7, 62, 7, matrix.Color333(7, 7, 7));
+          ugm3();
+          petiteMaison();
 
           matrix.setCursor(5, 9); // next line
           matrix.setTextSize(2);  // size 2 == 16 pixels high
@@ -705,7 +624,7 @@ void SDS011PM()
           }
 
           delay(8000);
-          matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+          blackScreen();
 
           matrix.setCursor(0, 0); // next line
           matrix.setTextSize(1);  // size 1 == 8 pixels high
@@ -715,65 +634,8 @@ void SDS011PM()
           matrix.drawPixel(18, 6, matrix.Color888(0, 82, 228));
           matrix.println("5");
 
-          matrix.drawLine(51, 0, 52, 0, matrix.Color888(0, 82, 228));
-          matrix.drawLine(59, 0, 59, 0, matrix.Color333(7, 7, 7));
-          matrix.drawLine(43, 1, 43, 1, matrix.Color888(0, 82, 228));
-          matrix.drawLine(53, 1, 53, 1, matrix.Color888(0, 82, 228));
-          matrix.drawLine(58, 1, 58, 1, matrix.Color333(7, 7, 7));
-          matrix.drawLine(60, 1, 60, 1, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 2, 28, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 2, 32, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 2, 37, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(42, 2, 42, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(52, 2, 53, 2, matrix.Color888(0, 82, 228));
-          matrix.drawLine(57, 2, 57, 2, matrix.Color333(7, 7, 7));
-          matrix.drawLine(61, 2, 61, 2, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 3, 28, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 3, 32, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(34, 3, 34, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(37, 3, 38, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(42, 3, 42, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 3, 46, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(48, 3, 48, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(53, 3, 53, 3, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 3, 56, 3, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 3, 62, 3, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 4, 28, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 4, 32, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(34, 4, 34, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(37, 4, 38, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(41, 4, 41, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 4, 45, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 4, 47, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 4, 49, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(51, 4, 52, 4, matrix.Color888(0, 82, 228));
-          matrix.drawLine(55, 4, 56, 4, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 4, 63, 4, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 5, 28, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(31, 5, 32, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 5, 36, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(38, 5, 38, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(41, 5, 41, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 5, 45, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 5, 47, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 5, 49, 5, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 5, 56, 5, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 5, 62, 5, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 6, 30, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(32, 6, 32, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(38, 6, 38, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(40, 6, 40, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 6, 45, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 6, 47, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 6, 49, 6, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 6, 56, 6, matrix.Color333(7, 7, 7));
-          matrix.drawLine(62, 6, 62, 6, matrix.Color333(7, 7, 7));
-          matrix.drawLine(28, 7, 28, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(35, 7, 37, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(45, 7, 45, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(47, 7, 47, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(49, 7, 49, 7, matrix.Color888(0, 82, 228));
-          matrix.drawLine(56, 7, 62, 7, matrix.Color333(7, 7, 7));
+          ugm3();
+          petiteMaison();
 
           if (P25 < 10)
           { // PM2,5 niv IDEAL
@@ -859,23 +721,18 @@ void SDS011PM()
     matrix.setCursor(32, 15); // next line
     matrix.setTextSize(1);    // size 1 == 8 pixels high
     matrix.setTextColor(matrix.Color333(7, 0, 0));
-    matrix.println("Init");
+    matrix.println("prbl sonde PM");
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   }
 }
-
-
-
-
 
 // *************************************** LOOP **************************************
 // **************************************************************************************
 
-
 void loop()
 {
-  matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+  blackScreen();
 
   Serial.print("Module Air numéro:");
   Serial.println(deviceID);
@@ -887,7 +744,7 @@ void loop()
     Serial.println("Ecran Aircarto");
     LogoAirCarto();
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   }
 
   if (Boucle == 1)
@@ -895,7 +752,7 @@ void loop()
     Serial.println("Ecran Gemenos");
     LogoGemenos();
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   }
 
   if (Boucle == 2)
@@ -903,7 +760,7 @@ void loop()
     Serial.println("Ecran AtmoSud");
     LogoAtmoSud();
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   }
 
   if (Boucle == 3)
@@ -911,14 +768,14 @@ void loop()
     Serial.println("Ecran Module Air");
     LogoModuleAir();
     delay(5000);
-    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+    blackScreen();
   }
 
   // Pas besoin d'afficher le logo "air interieur" si on n'affiche pas les données "extérieur"
   /*
    AirInterieur();
   delay(5000);
-  matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+  blackScreen();
   */
 
   Serial.println("Ecran CO2");
@@ -927,7 +784,7 @@ void loop()
   Serial.println("Ecran PM");
   SDS011PM();
   delay(8000); // 7500
-  matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+  blackScreen();
 
   Serial.print("CO2 :");
   Serial.println(mySensor.ppm);

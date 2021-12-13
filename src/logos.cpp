@@ -1,6 +1,78 @@
 #include "Arduino.h"
 #include "logos.h"
 
+void blackScreen()
+{
+    matrix.fillRect(0, 0, 64, 32, matrix.Color444(0, 0, 0));
+}
+
+void ugm3()
+{
+    matrix.drawLine(51, 0, 52, 0, matrix.Color888(0, 82, 228));
+    matrix.drawLine(43, 1, 43, 1, matrix.Color888(0, 82, 228));
+    matrix.drawLine(53, 1, 53, 1, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 2, 28, 2, matrix.Color888(0, 82, 228));
+    matrix.drawLine(32, 2, 32, 2, matrix.Color888(0, 82, 228));
+    matrix.drawLine(35, 2, 37, 2, matrix.Color888(0, 82, 228));
+    matrix.drawLine(42, 2, 42, 2, matrix.Color888(0, 82, 228));
+    matrix.drawLine(52, 2, 53, 2, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 3, 28, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(32, 3, 32, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(34, 3, 34, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(37, 3, 38, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(42, 3, 42, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(45, 3, 46, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(48, 3, 48, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(53, 3, 53, 3, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 4, 28, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(32, 4, 32, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(34, 4, 34, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(37, 4, 38, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(41, 4, 41, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(45, 4, 45, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(47, 4, 47, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(49, 4, 49, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(51, 4, 52, 4, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 5, 28, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(31, 5, 32, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(35, 5, 36, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(38, 5, 38, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(41, 5, 41, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(45, 5, 45, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(47, 5, 47, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(49, 5, 49, 5, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 6, 30, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(32, 6, 32, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(38, 6, 38, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(40, 6, 40, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(45, 6, 45, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(47, 6, 47, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(49, 6, 49, 6, matrix.Color888(0, 82, 228));
+    matrix.drawLine(28, 7, 28, 7, matrix.Color888(0, 82, 228));
+    matrix.drawLine(35, 7, 37, 7, matrix.Color888(0, 82, 228));
+    matrix.drawLine(45, 7, 45, 7, matrix.Color888(0, 82, 228));
+    matrix.drawLine(47, 7, 47, 7, matrix.Color888(0, 82, 228));
+    matrix.drawLine(49, 7, 49, 7, matrix.Color888(0, 82, 228));
+}
+
+void petiteMaison()
+{
+    matrix.drawLine(55, 4, 56, 4, matrix.Color333(7, 7, 7));
+    matrix.drawLine(62, 4, 63, 4, matrix.Color333(7, 7, 7));
+    matrix.drawLine(59, 0, 59, 0, matrix.Color333(7, 7, 7));
+    matrix.drawLine(58, 1, 58, 1, matrix.Color333(7, 7, 7));
+    matrix.drawLine(60, 1, 60, 1, matrix.Color333(7, 7, 7));
+    matrix.drawLine(57, 2, 57, 2, matrix.Color333(7, 7, 7));
+    matrix.drawLine(61, 2, 61, 2, matrix.Color333(7, 7, 7));
+    matrix.drawLine(56, 3, 56, 3, matrix.Color333(7, 7, 7));
+    matrix.drawLine(62, 3, 62, 3, matrix.Color333(7, 7, 7));
+    matrix.drawLine(56, 5, 56, 5, matrix.Color333(7, 7, 7));
+    matrix.drawLine(62, 5, 62, 5, matrix.Color333(7, 7, 7));
+    matrix.drawLine(56, 6, 56, 6, matrix.Color333(7, 7, 7));
+    matrix.drawLine(62, 6, 62, 6, matrix.Color333(7, 7, 7));
+    matrix.drawLine(56, 7, 62, 7, matrix.Color333(7, 7, 7));
+}
+
 void LogoAirCarto()
 {
     matrix.drawLine(9, 8, 12, 8, matrix.Color888(67, 141, 191));
