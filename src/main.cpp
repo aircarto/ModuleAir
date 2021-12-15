@@ -68,7 +68,7 @@ float P10_100 = 0; // vrai calcul PM10
 
 /* CHOISIR NUM DU MODULE AIR **********************************************/
 
-int deviceID = 730;
+int deviceID = 302;
 
 /**********************************************/
 
