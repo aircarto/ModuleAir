@@ -65,10 +65,16 @@ float P25 = 0;     // vrai calcul PM2.5
 float P10 = 0;     // vrai calcul PM10
 float P25_100 = 0; // vrai calcul PM2.5
 float P10_100 = 0; // vrai calcul PM10
+float meanP25 = 0; // moyenne PM2.5
+float meanP10 = 0; // moyenne PM10
+int meanCO2 = 0;   // moyenne CO2
 
 /* CHOISIR NUM DU MODULE AIR **********************************************/
 
-int deviceID = 302;
+int deviceID = 13;
+
+bool wifi = true;
+bool lora = false;
 
 /**********************************************/
 
@@ -113,7 +119,8 @@ char VISA[5];
 NDIRZ16 mySensor = NDIRZ16(&Serial1);
 // MHZ19 mySensor;
 
-int Boucle = 0;
+int Boucle = 1;
+int BoucleLora = 1;
 
 const byte numChars = 32;
 char receivedChars[numChars]; // an array to store the received data
@@ -441,7 +448,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
     // Serial.print("CO2 :");
     // Serial.println(mySensor.ppm);
 
-    if (mySensor.ppm <= 1000)
+    if (mySensor.ppm <= 800)
     { // CO2 niv bon
       matrix.fillRect(47, 9, 17, 14, matrix.Color444(0, 15, 0));
       matrix.setCursor(21, 25); // next line
@@ -454,7 +461,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
       matrix.println(mySensor.ppm);
     } // fin CO2 niv bon
 
-    if (mySensor.ppm > 1000 && mySensor.ppm <= 1700)
+    if (mySensor.ppm > 800 && mySensor.ppm <= 1700)
     { // CO2 niv moyen
       matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
       matrix.setCursor(7, 25); // next line
@@ -543,13 +550,18 @@ void SDS011PM()
           matrix.setTextSize(2);  // size 2 == 16 pixels high
 
           if (P10 <= 15)
-          { // PM10 niv IDEAL
+          { // PM10 niv IDEAL -> MAJ: IDEAL devient BON
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(0, 15, 0));
 
-            matrix.setCursor(18, 25); // next line
+            // matrix.setCursor(18, 25); // next line
+            // matrix.setTextSize(1);    // size 1 == 8 pixels high
+            // matrix.setTextColor(matrix.Color333(0, 7, 0));
+            // matrix.println("IDEAL");
+
+            matrix.setCursor(22, 25); // next line
             matrix.setTextSize(1);    // size 1 == 8 pixels high
             matrix.setTextColor(matrix.Color333(0, 7, 0));
-            matrix.println("IDEAL");
+            matrix.println("BON");
 
             if (P10 >= 5 && P10 < 10)
             {
@@ -596,13 +608,20 @@ void SDS011PM()
           } // fin PM10 niv mauvais
 
           if (P10 > 15 && P10 <= 30)
-          { // CO2 niv BON
+          { // CO2 niv BON  -> MAJ: BON devient MOYEN
             // matrix.setTextColor(matrix.Color444(15, 15, 0));
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
-            matrix.setCursor(22, 25); // next line
+
+            // matrix.setCursor(22, 25); // next line
+            // matrix.setTextSize(1);    // size 1 == 8 pixels high
+            // matrix.setTextColor(matrix.Color333(7, 7, 0));
+            // matrix.println("BON");
+
+            matrix.setCursor(15, 25); // next line
             matrix.setTextSize(1);    // size 1 == 8 pixels high
             matrix.setTextColor(matrix.Color333(7, 7, 0));
-            matrix.println("BON");
+            matrix.println("MOYEN");
+
             matrix.setTextColor(matrix.Color333(7, 7, 7));
             matrix.setCursor(0, 9);
             matrix.setTextSize(2);
@@ -610,13 +629,20 @@ void SDS011PM()
           }
 
           if (P10 > 30 && P10 <= 75)
-          { // CO2 niv moyen
+          { // CO2 niv moyen  --> MAJ moyen devient DEGRADE
             // matrix.setTextColor(matrix.Color444(15, 15, 0));
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
-            matrix.setCursor(15, 25); // next line
-            matrix.setTextSize(1);    // size 1 == 8 pixels high
+
+            // matrix.setCursor(15, 25); // next line
+            // matrix.setTextSize(1);    // size 1 == 8 pixels high
+            // matrix.setTextColor(matrix.Color333(7, 7, 0));
+            // matrix.println("MOYEN");
+
+            matrix.setCursor(3, 25); // next line
+            matrix.setTextSize(1);   // size 1 == 8 pixels high
             matrix.setTextColor(matrix.Color333(7, 7, 0));
-            matrix.println("MOYEN");
+            matrix.println("DEGRADE");
+
             matrix.setTextColor(matrix.Color333(7, 7, 7));
             matrix.setCursor(0, 9);
             matrix.setTextSize(2);
@@ -638,14 +664,19 @@ void SDS011PM()
           petiteMaison();
 
           if (P25 < 10)
-          { // PM2,5 niv IDEAL
+          { // PM2,5 niv IDEAL -> MAJ: IDEAL devient BON
 
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(0, 15, 0));
 
-            matrix.setCursor(18, 25); // next line
+            // matrix.setCursor(18, 25); // next line
+            // matrix.setTextSize(1);    // size 1 == 8 pixels high
+            // matrix.setTextColor(matrix.Color333(0, 7, 0));
+            // matrix.println("IDEAL");
+
+            matrix.setCursor(22, 25); // next line
             matrix.setTextSize(1);    // size 1 == 8 pixels high
             matrix.setTextColor(matrix.Color333(0, 7, 0));
-            matrix.println("IDEAL");
+            matrix.println("BON");
 
             if (P25 < 3)
             {
@@ -685,13 +716,20 @@ void SDS011PM()
           } // fin PM2,5 niv mauvais
 
           if (P25 >= 10 && P25 <= 20)
-          { // PM2,5 niv BON
+          { // PM2,5 niv BON -> MAJ: BON devient MOYEN
             // matrix.setTextColor(matrix.Color444(15, 15, 0));
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
-            matrix.setCursor(22, 25); // next line
+            matrix.setTextSize(1); // size 1 == 8 pixels high
+
+            // matrix.setCursor(22, 25); // next line
+            // matrix.setTextColor(matrix.Color333(7, 7, 0));
+            // matrix.println("BON");
+
+            matrix.setCursor(15, 25); // next line
             matrix.setTextSize(1);    // size 1 == 8 pixels high
             matrix.setTextColor(matrix.Color333(7, 7, 0));
-            matrix.println("BON");
+            matrix.println("MOYEN");
+
             matrix.setTextColor(matrix.Color333(7, 7, 7));
             matrix.setCursor(0, 9);
             matrix.setTextSize(2);
@@ -699,13 +737,19 @@ void SDS011PM()
           }
 
           if (P25 > 20 && P25 <= 50)
-          { // PM2,5 niv moyen
+          { // PM2,5 niv moyen --> MAJ moyen devient DEGRADE
             // matrix.setTextColor(matrix.Color444(15, 15, 0));
             matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
-            matrix.setCursor(15, 25); // next line
-            matrix.setTextSize(1);    // size 1 == 8 pixels high
+            matrix.setTextSize(1); // size 1 == 8 pixels high
+
+            // matrix.setCursor(15, 25); // next line
+            // matrix.setTextColor(matrix.Color333(7, 7, 0));
+            // matrix.println("MOYEN");
+
+            matrix.setCursor(3, 25); // next line
             matrix.setTextColor(matrix.Color333(7, 7, 0));
-            matrix.println("MOYEN");
+            matrix.println("DEGRADE");
+
             matrix.setTextColor(matrix.Color333(7, 7, 7));
             matrix.setCursor(0, 9);
             matrix.setTextSize(2);
@@ -734,31 +778,25 @@ void loop()
 {
   blackScreen();
 
-  Serial.print("Module Air numéro:");
+  Serial.print("Module Air numéro: ");
   Serial.println(deviceID);
-  Serial.print("Boucle:");
+  Serial.print("Boucle Logo: ");
   Serial.println(Boucle);
-
-  if (Boucle == 0)
-  {
-    Serial.println("Ecran Aircarto");
-    LogoAirCarto();
-    delay(5000);
-    blackScreen();
-  }
+  Serial.print("Boucle Lora: ");
+  Serial.println(BoucleLora);
 
   if (Boucle == 1)
   {
-    Serial.println("Ecran Gemenos");
-    LogoGemenos();
+    Serial.println("Ecran AtmoSud");
+    LogoAtmoSud();
     delay(5000);
     blackScreen();
   }
 
   if (Boucle == 2)
   {
-    Serial.println("Ecran AtmoSud");
-    LogoAtmoSud();
+    Serial.println("Ecran Aircarto");
+    LogoAirCarto();
     delay(5000);
     blackScreen();
   }
@@ -769,7 +807,16 @@ void loop()
     LogoModuleAir();
     delay(5000);
     blackScreen();
+    Boucle = 0;
   }
+
+  //  if (Boucle == 1)
+  // {
+  //   Serial.println("Ecran Gemenos");
+  //   LogoGemenos();
+  //   delay(5000);
+  //   blackScreen();
+  // }
 
   // Pas besoin d'afficher le logo "air interieur" si on n'affiche pas les données "extérieur"
   /*
@@ -793,32 +840,82 @@ void loop()
   Serial.print("PM10: ");
   Serial.println(P10);
 
+  // ********************************
+  // WIFI
+  // *******************************
+
   // pour envoyer les data au module WIFI: Ne pas utiliser de String
   // on envoie les données séparée par une virgule au format <devicenNum, CO2, PM10, PM2.5>
+  // la boucle dure 30 sec
 
-  Serial2.print("<");
-  Serial2.print(deviceID);
-  Serial2.print(",");
-  Serial2.print(mySensor.ppm);
-  Serial2.print(",");
-  Serial2.print(P25);
-  Serial2.print(",");
-  Serial2.print(P10);
-  Serial2.print(">");
-  Serial2.print("\r\n");
+  // WIFI send every 30 sec
 
-  Serial.println("Data envoyée sur le port de Série 2");
+  if (wifi)
+  {
 
-  recvOneChar(); //écoute le port de série 2 pour une réponse
-  showNewData(); // affiche la réponse
+    Serial2.print("<");
+    Serial2.print(deviceID);
+    Serial2.print(",");
+    Serial2.print(mySensor.ppm);
+    Serial2.print(",");
+    Serial2.print(P25);
+    Serial2.print(",");
+    Serial2.print(P10);
+    Serial2.print(">");
+    Serial2.print("\r\n");
+    Serial.println("Data envoyée sur le port de Série 2");
+  }
+  // ********************************
+  // LORA
+  // ********************************
 
-  // Affichage écrans polluants extérieur
-  PolExt();
+  // en lora on veut envoyer toute les 5 min (10 x 0,5min)
+  // on fait donc une moyenne des 10 dernières mesures et on envoie
+  if (lora)
+  {
+    // moyenne des mesures
+    meanP10 = meanP10 + P10;
+    meanP25 = meanP25 + P25;
+    meanCO2 = meanCO2 + mySensor.ppm;
+
+    // send every 5 min (9 boucles)
+
+    if (BoucleLora == 10)
+    {
+      meanP10 = meanP10 / BoucleLora;
+      meanP25 = meanP25 / BoucleLora;
+      meanCO2 = meanCO2 / BoucleLora;
+
+      Serial2.print("<");
+      Serial2.print(deviceID);
+      Serial2.print(",");
+      Serial2.print(meanCO2);
+      Serial2.print(",");
+      Serial2.print(meanP25);
+      Serial2.print(",");
+      Serial2.print(meanP10);
+      Serial2.print(">");
+      Serial2.print("\r\n");
+      Serial.println("Data envoyée sur le port de Série 2 pour LORA");
+      BoucleLora = 0;
+      meanP10 = 0;
+      meanP25 = 0;
+      meanCO2 = 0;
+    }
+
+    // on incrémenta la Boucle pour le LORA
+    BoucleLora = BoucleLora + 1;
+  }
+  // ********* FIN LORA
+
+  // REPONSE DE L'ESP 32 et Affichage polluants Ext
+  //  recvOneChar(); //écoute le port de série 2 pour une réponse
+  //  showNewData(); // affiche la réponse
+  //  PolExt(); // Affichage écrans polluants extérieur
 
   // on incrémenta la Boucle pour altérner les logos
   Boucle = Boucle + 1;
-  if (Boucle == 4)
-  {
-    Boucle = 0;
-  }
+
+  Serial.println("FIN DE LA BOUCLE LOOP ------- ");
+  Serial.println("");
 }
