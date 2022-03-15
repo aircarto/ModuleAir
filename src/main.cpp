@@ -71,7 +71,7 @@ int meanCO2 = 0;   // moyenne CO2
 
 /* CHOISIR NUM DU MODULE AIR **********************************************/
 
-int deviceID = 13;
+int deviceID = 404;
 
 bool wifi = true;
 bool lora = false;
@@ -115,6 +115,7 @@ int VLISA = 75; // Horaire
 char VISA[5];
 
 // CO2 sur le port de série 1
+
 // choisir sa sonde
 NDIRZ16 mySensor = NDIRZ16(&Serial1);
 // MHZ19 mySensor;
