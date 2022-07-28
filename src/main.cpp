@@ -71,7 +71,7 @@ int meanCO2 = 0;   // moyenne CO2
 
 /* CHOISIR NUM DU MODULE AIR **********************************************/
 
-int deviceID = 404;
+int deviceID = 475;
 
 bool wifi = true;
 bool lora = false;
@@ -786,7 +786,7 @@ void loop()
   Serial.print("Boucle Lora: ");
   Serial.println(BoucleLora);
 
-  if (Boucle == 1)
+  if (Boucle == 99)
   {
     Serial.println("Ecran AtmoSud");
     LogoAtmoSud();
@@ -794,7 +794,7 @@ void loop()
     blackScreen();
   }
 
-  if (Boucle == 2)
+  if (Boucle == 99)
   {
     Serial.println("Ecran Aircarto");
     LogoAirCarto();
@@ -802,7 +802,7 @@ void loop()
     blackScreen();
   }
 
-  if (Boucle == 3)
+  if (Boucle == 1)
   {
     Serial.println("Ecran Module Air");
     LogoModuleAir();
