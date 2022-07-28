@@ -462,7 +462,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
       matrix.println(mySensor.ppm);
     } // fin CO2 niv bon
 
-    if (mySensor.ppm > 800 && mySensor.ppm <= 1700)
+    if (mySensor.ppm > 800 && mySensor.ppm <= 1500)
     { // CO2 niv moyen
       matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 15, 0));
       matrix.setCursor(7, 25); // next line
@@ -475,7 +475,7 @@ void MHZ16DIR() // Lecture + message de prévention du CO2
       matrix.println(mySensor.ppm);
     } // fin CO2 niv moyen
 
-    if (mySensor.ppm > 1700)
+    if (mySensor.ppm > 1500)
     { // CO2 niv mauvais
       matrix.fillRect(47, 9, 17, 14, matrix.Color444(15, 0, 0));
       matrix.setCursor(3, 25); // next line
