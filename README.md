@@ -5,7 +5,7 @@
 
 Capteur qualité de l'air open source
 
-Salut PJ!
+Salut PJ! J'espère que ca va.
 
 
 SALUT PAUL
